@@ -1,1 +1,6 @@
-{}
+{
+    "ignore_dirs": ["node_modules", ".git", "ios/build", "android/app/build"],
+    "root_files": [".watchmanconfig", "package.json"],
+    "gc_age_seconds": 3600,
+    "log_level": "error"
+}
