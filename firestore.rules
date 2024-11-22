@@ -1,0 +1,37 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is accessing their own document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Allow reading user profiles for authenticated users (needed for username checks)
+      allow read: if isAuthenticated();
+      
+      // Allow user creation if authenticated and userId matches auth uid
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Allow updates only by document owner
+      allow update: if isOwner(userId);
+
+      // Allow listing users (needed for username uniqueness check)
+      allow list: if isAuthenticated() &&
+        request.query.limit <= 1 && 
+        request.query.filters.size() == 1 && 
+        request.query.filters[0].op == "==" && 
+        (
+          request.query.filters[0].path[0] == "username" ||
+          request.query.filters[0].path[0] == "email"
+        );
+    }
+  }
+}
